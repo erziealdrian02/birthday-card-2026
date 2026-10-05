@@ -33,6 +33,17 @@ Masukkan foto ke folder `images/` dengan nama persis seperti ini:
 
 | File | Tempat muncul | Rasio yang disarankan |
 |---|---|---|
+| `hero-01.jpg` | Hero: foto utama di samping "Happy Birthday" | portrait 4:5 |
+| `hero-02.jpg` | Hero: foto kecil kanan atas | square 1:1 |
+| `hero-03.jpg` | Hero: foto kiri bawah | landscape 4:3 |
+| `hero-04.jpg` | Hero: foto kanan bawah | portrait 3:4 |
+| `intro-01.jpg` | Intro: potret besar di samping "Today is about you" | portrait 4:5 |
+| `intro-02.jpg` | Intro: foto kecil yang menumpuk di potret besar | square 1:1 |
+| `intro-03.jpg` | Collage intro: foto lebar | landscape 3:2 |
+| `intro-04.jpg` | Collage intro: potret | portrait 4:5 |
+| `intro-05.jpg` | Collage intro: foto kecil | square 1:1 |
+| `intro-06.jpg` … `intro-08.jpg` | Collage intro: tumpukan kecil (06 paling belakang, 08 paling depan) | portrait 4:5 |
+| `stack-01.jpg` … `stack-03.jpg` | Interlude "Some of my favorite versions of us" (01 paling depan, 03 paling belakang) | portrait 4:5 |
 | `memory-01.jpg` | Story: "The first hello" | portrait 4:5 |
 | `memory-02.jpg` | Story: "The silly conversations" | portrait 3:4 |
 | `memory-03.jpg` | Story: "The moments we didn't plan" | landscape 5:4 |
@@ -44,6 +55,22 @@ Kalau ada foto yang belum dimasukkan, akan muncul placeholder cream bertuliskan
 
 Tips: kecilkan ukuran foto sampai lebar sekitar 1600px (±300–500 KB) supaya halaman tetap ringan.
 
+## 2b. Tambahkan video (Memory Gallery)
+
+Masukkan 2 video ke folder `videos/`:
+
+| File | Bentuk | Ukuran |
+|---|---|---|
+| `video-01.mp4` | portrait 2:3 | 1200×1800 |
+| `video-02.mp4` | landscape 16:9 | 1280×720 |
+
+- Video diputar otomatis tanpa suara (browser hanya mengizinkan autoplay kalau video di-mute), berulang (loop),
+  dan hanya berjalan saat terlihat di layar supaya hemat baterai.
+- Ada tombol kecil pause/play di pojok kanan bawah setiap video.
+- Kalau perangkat memakai pengaturan *reduce motion*, video tidak diputar otomatis; tekan tombol play.
+- Kalau file belum ada, muncul placeholder *"a little video here"*.
+- Gunakan format MP4 (H.264), durasi pendek (±5–15 detik), dan usahakan di bawah ±8 MB per video.
+
 ## 3. Tambahkan lagu
 
 Simpan lagu sebagai `assets/birthday-song.mp3`.
@@ -54,10 +81,11 @@ Kalau file belum ada, player akan menampilkan catatan kecil yang memberi tahu fi
 
 Semua teks (surat, wishes, caption foto, dan lainnya) ada langsung di `index.html`, per section:
 
-- `#home`: hero
-- `#intro`: "Today is about you."
+- `#home`: hero + 4 foto
+- `#intro`: "Today is about you." + potret, caption kecil, dan collage
+- `#favorites`: interlude dengan tumpukan foto + 3 caption kecil (i, ii, iii)
 - `#story`: 4 memory cards
-- `#gallery`: galeri foto + caption saat di-hover
+- `#gallery`: galeri foto + caption saat di-hover, lalu 2 video ("And a few that still move —")
 - `#message`: surat ulang tahun
 - `#wishes`: 5 wishes (bisa diklik)
 - `#listen`: music player
@@ -71,8 +99,14 @@ birthday/
 ├── assets/
 │   └── birthday-song.mp3
 ├── images/
+│   ├── hero-01.jpg … hero-04.jpg
+│   ├── intro-01.jpg … intro-08.jpg
+│   ├── stack-01.jpg … stack-03.jpg
 │   ├── memory-01.jpg … memory-04.jpg
 │   └── photo-01.jpg … photo-05.jpg
+├── videos/
+│   ├── video-01.mp4    ← portrait 1200×1800
+│   └── video-02.mp4    ← landscape 1280×720
 └── README.md
 ```
 
