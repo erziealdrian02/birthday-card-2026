@@ -1896,6 +1896,13 @@
                   NAME</em></span></span>
           </h1>
 
+          <button id="bgMusicBtn" type="button"
+            class="hero-fade mt-4 inline-flex items-center gap-2 text-[11px] tracking-[.22em] uppercase text-brown/50 hover:text-brown transition-colors"
+            style="--d:.9s" aria-pressed="false" aria-label="Toggle background music">
+            <span id="bgMusicIcon" aria-hidden="true">♪</span>
+            <span id="bgMusicText">music off</span>
+          </button>
+
           <!-- Personal photos around the headline (images/hero-01.jpg … hero-04.jpg) -->
           <div class="hero-photos cluster" role="group" aria-label="A few photos of you">
             <figure class="photo print hero-print hp-1" style="--d:.5s">
@@ -2021,7 +2028,7 @@
         <div class="md:col-span-6 lg:col-span-12 md:mt-8 lg:mt-0">
           <div class="intro-collage cluster" role="group" aria-label="A collage of little memories">
             <figure class="photo print reveal c-1">
-              <div class="photo-inner"><img src="images/intro-03.jpg" alt="A wide photo from one of our days out"
+              <div class="photo-inner"><img src="images/intro-03.HEIC" alt="A wide photo from one of our days out"
                   loading="lazy" decoding="async"></div>
             </figure>
             <figure class="photo print reveal c-3">
@@ -2513,7 +2520,8 @@
                   <span id="playStatus">paused</span>
                 </p>
                 <p class="mt-3 font-serif text-[clamp(1.6rem,2.6vw,2.2rem)] leading-tight">our little soundtrack</p>
-                <p class="mt-1 text-[14px] text-brown truncate">for <span data-bind="name">HER NAME</span> · chapter
+                <p class="mt-1 text-[14px] text-brown truncate">for <span data-bind="name">Tika Sayaaaaaaaaang</span> ·
+                  chapter
                   <span data-bind="age">22</span>
                 </p>
               </div>
@@ -2558,7 +2566,7 @@
                   </svg>
                 </button>
                 <label for="volume" class="sr-only">Volume</label>
-                <input id="volume" class="range" type="range" min="0" max="100" step="1" value="80">
+                <input id="volume" class="range" type="range" min="0" max="100" step="1" value="50">
               </div>
             </div>
 
@@ -2593,7 +2601,7 @@
         <p class="eyebrow reveal">vii. always</p>
         <h2 id="finalTitle" class="display reveal mt-10 text-[clamp(3rem,9vw,8.75rem)]">
           Happy <span data-bind="ageOrdinal">22nd</span> Birthday,<br>
-          <em class="text-olive"><span data-bind="name">HER NAME</span>.</em>
+          <em class="text-olive"><span data-bind="name">Tika Sayaaaaaaaaang</span>.</em>
         </h2>
         <p class="reveal mt-10 font-serif italic text-[clamp(1.5rem,2.6vw,2.2rem)] text-brown">Here's to another
           beautiful chapter.</p>
@@ -2614,7 +2622,7 @@
 
       <footer
         class="wrap relative z-10 mt-28 md:mt-36 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-charcoal/10 pt-6 text-[12px] text-brown">
-        <p>made by hand, with love — for <span data-bind="name">HER NAME</span></p>
+        <p>made by hand, with love — for <span data-bind="name">Tika Sayaaaaaaaaang</span></p>
         <p class="font-serif italic text-[15px]">chapter <span data-bind="age">22</span> · <span
             data-bind="year">2026</span></p>
       </footer>
@@ -2626,10 +2634,10 @@
        Edit everything personal here — it updates the whole page.
        ========================================================= */
     const birthdayData = {
-      name: "HER NAME",
+      name: "Tika Sayaaaaaaaaang",
       birthday: "20 October 2026",
       age: 22,
-      song: "assets/birthday-song.mp3"
+      song: "assets/TULUS - Teh Hijau.mp3"
     };
 
     (function () {
@@ -2884,7 +2892,39 @@
       let seeking = false;
 
       audio.src = birthdayData.song;
+      audio.loop = true;
       audio.volume = vol.value / 100;
+
+      /* ---------- Background music (autoplay + subtle toggle) ---------- */
+      const bgBtn = $('#bgMusicBtn');
+      const bgText = $('#bgMusicText');
+      const syncBg = () => {
+        const on = !audio.paused;
+        bgBtn.setAttribute('aria-pressed', String(on));
+        bgText.textContent = on ? 'music on' : 'music off';
+        bgBtn.classList.toggle('text-brown', on);
+      };
+      audio.addEventListener('play', syncBg);
+      audio.addEventListener('pause', syncBg);
+      bgBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (audio.paused) { const p = audio.play(); if (p && p.catch) p.catch(() => { }); }
+        else audio.pause();
+      });
+      // Browsers block sound autoplay until the user interacts, so try now and retry on first interaction.
+      let bgDeclined = false;
+      bgBtn.addEventListener('click', () => { bgDeclined = true; });
+      const tryAuto = () => { const p = audio.play(); if (p && p.catch) p.catch(() => { }); };
+      tryAuto();
+      const onFirst = e => {
+        if (!audio.paused || bgDeclined || bgBtn.contains(e.target)) return;
+        tryAuto();
+      };
+      ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(ev =>
+        window.addEventListener(ev, function h(e) {
+          onFirst(e);
+          if (!audio.paused) window.removeEventListener(ev, h);
+        }, { passive: true }));
 
       const fmt = t => {
         if (!isFinite(t) || t < 0) t = 0;
