@@ -926,6 +926,37 @@
       max-width: 36rem;
     }
 
+    /* Intro pile: tap to fan the cards out, tap again to fold back */
+    .stack.c-4>.print {
+      transition: translate .7s var(--ease), rotate .7s var(--ease), box-shadow .7s var(--ease),
+        opacity .9s var(--ease) var(--d, 0ms), transform 1.1s var(--ease) var(--d, 0ms);
+    }
+
+    .stack.c-4.is-open>.print:nth-child(1) {
+      translate: -48% -6%;
+      rotate: -12deg;
+    }
+
+    .stack.c-4.is-open>.print:nth-child(2) {
+      translate: 4% 20%;
+      rotate: 2deg;
+    }
+
+    .stack.c-4.is-open>.print:nth-child(3) {
+      translate: 52% -4%;
+      rotate: 11deg;
+    }
+
+    /* Tap a photo to bring it to the front like a deck of cards (animated in JS) */
+    .stack>.print {
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .stack>.print.is-flying {
+      z-index: 10 !important;
+    }
+
     @media (max-width: 767px) {
       .stack--feature {
         max-width: 24rem;
@@ -2576,6 +2607,7 @@
                 class="font-medium text-charcoal">assets/birthday-song.mp3</span> and press play again.
             </p>
             <audio id="audio" preload="metadata"></audio>
+            <audio id="bgAudio" preload="metadata"></audio>
           </div>
         </div>
       </div>
@@ -2637,7 +2669,8 @@
       name: "Tika Sayaaaaaaaaang",
       birthday: "20 October 2026",
       age: 22,
-      song: "assets/TULUS - Teh Hijau.mp3"
+      song: "assets/birthday-song.mp3",
+      bgSong: "assets/TULUS - Teh Hijau.mp3"
     };
 
     (function () {
@@ -2880,6 +2913,7 @@
 
       /* ---------- Music player ---------- */
       const audio = $('#audio');
+      const bgAudio = $('#bgAudio');
       const player = $('#player');
       const playBtn = $('#playBtn');
       const seek = $('#seek');
@@ -2892,38 +2926,45 @@
       let seeking = false;
 
       audio.src = birthdayData.song;
-      audio.loop = true;
       audio.volume = vol.value / 100;
+
+      bgAudio.src = birthdayData.bgSong;
+      bgAudio.loop = true;
+      bgAudio.volume = 0.5;
 
       /* ---------- Background music (autoplay + subtle toggle) ---------- */
       const bgBtn = $('#bgMusicBtn');
       const bgText = $('#bgMusicText');
       const syncBg = () => {
-        const on = !audio.paused;
+        const on = !bgAudio.paused;
         bgBtn.setAttribute('aria-pressed', String(on));
         bgText.textContent = on ? 'music on' : 'music off';
         bgBtn.classList.toggle('text-brown', on);
       };
-      audio.addEventListener('play', syncBg);
-      audio.addEventListener('pause', syncBg);
+      bgAudio.addEventListener('play', syncBg);
+      bgAudio.addEventListener('pause', syncBg);
       bgBtn.addEventListener('click', e => {
         e.stopPropagation();
-        if (audio.paused) { const p = audio.play(); if (p && p.catch) p.catch(() => { }); }
-        else audio.pause();
+        if (bgAudio.paused) {
+          audio.pause(); // stop the manual player if bg music is played
+          const p = bgAudio.play(); if (p && p.catch) p.catch(() => { });
+        } else {
+          bgAudio.pause();
+        }
       });
       // Browsers block sound autoplay until the user interacts, so try now and retry on first interaction.
       let bgDeclined = false;
       bgBtn.addEventListener('click', () => { bgDeclined = true; });
-      const tryAuto = () => { const p = audio.play(); if (p && p.catch) p.catch(() => { }); };
+      const tryAuto = () => { const p = bgAudio.play(); if (p && p.catch) p.catch(() => { }); };
       tryAuto();
       const onFirst = e => {
-        if (!audio.paused || bgDeclined || bgBtn.contains(e.target)) return;
+        if (!bgAudio.paused || bgDeclined || bgBtn.contains(e.target) || !audio.paused) return;
         tryAuto();
       };
       ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(ev =>
         window.addEventListener(ev, function h(e) {
           onFirst(e);
-          if (!audio.paused) window.removeEventListener(ev, h);
+          if (!bgAudio.paused) window.removeEventListener(ev, h);
         }, { passive: true }));
 
       const fmt = t => {
@@ -2944,6 +2985,7 @@
         }
       });
       audio.addEventListener('play', () => {
+        bgAudio.pause(); // pause background music if manual player starts
         player.classList.add('is-playing');
         playBtn.setAttribute('aria-label', 'Pause song');
         status.textContent = 'now playing';
@@ -3029,6 +3071,78 @@
           if (window.scrollY < 4 || performance.now() - started > 3000) replay();
           else requestAnimationFrame(waitForTop);
         })();
+      });
+
+      /* ---------- Photo stacks: tap a card -> it slides out, then tucks in front ---------- */
+      document.querySelectorAll('.stack').forEach(deck => {
+        /* c-4 pile: tap to fan the cards out, tap again (or wait) to fold back */
+        if (deck.classList.contains('c-4')) {
+          let timer = null;
+          const setOpen = open => {
+            clearTimeout(timer);
+            deck.classList.toggle('is-open', open);
+            if (open) timer = setTimeout(() => deck.classList.remove('is-open'), 5000);
+          };
+          deck.querySelectorAll(':scope > .print').forEach(p => {
+            p.tabIndex = 0;
+            p.setAttribute('role', 'button');
+            p.addEventListener('keydown', e => {
+              if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(!deck.classList.contains('is-open')); }
+            });
+          });
+          deck.addEventListener('click', () => setOpen(!deck.classList.contains('is-open')));
+          return;
+        }
+        let busy = false;
+        const cards = () => [...deck.querySelectorAll(':scope > .print')];
+        const bringFront = card => {
+          const list = cards();
+          const last = list[list.length - 1];
+          if (busy || !card || card === last) return;
+          busy = true;
+
+          const dir = parseFloat(getComputedStyle(deck).getPropertyValue('--dir')) || 1;
+          const before = new Map(list.map(c => {
+            const cs = getComputedStyle(c);
+            return [c, { x: c.offsetLeft, y: c.offsetTop, r: cs.rotate === 'none' ? '0deg' : cs.rotate }];
+          }));
+
+          last.after(card); // re-stack: positions come from :nth-child
+
+          const ease = 'cubic-bezier(.22,.8,.24,1)';
+          const done = [];
+          cards().forEach(c => {
+            const b = before.get(c);
+            const cs = getComputedStyle(c);
+            const nr = cs.rotate === 'none' ? '0deg' : cs.rotate;
+            const dx = b.x - c.offsetLeft, dy = b.y - c.offsetTop;
+            if (c === card) {
+              const h = c.offsetHeight, w = c.offsetWidth;
+              c.classList.add('is-flying');
+              const a = c.animate([
+                { transform: `translate(${dx}px, ${dy}px)`, rotate: b.r, offset: 0 },
+                { transform: `translate(${dx - dir * w * .55}px, ${dy + h * .18}px) scale(.97)`, rotate: `calc(${b.r} - ${dir * 6}deg)`, offset: .45, easing: ease },
+                { transform: 'translate(0, 0)', rotate: nr, offset: 1 }
+              ], { duration: 850, easing: 'cubic-bezier(.4,0,.2,1)' });
+              done.push(a.finished.catch(() => { }).then(() => c.classList.remove('is-flying')));
+            } else {
+              const a = c.animate([
+                { transform: `translate(${dx}px, ${dy}px)`, rotate: b.r },
+                { transform: 'translate(0, 0)', rotate: nr }
+              ], { duration: 850, easing: ease, delay: 120 });
+              done.push(a.finished.catch(() => { }));
+            }
+          });
+          Promise.all(done).then(() => { busy = false; });
+        };
+        deck.addEventListener('click', e => bringFront(e.target.closest('.print')));
+        cards().forEach(p => {
+          p.tabIndex = 0;
+          p.setAttribute('role', 'button');
+          p.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bringFront(p); }
+          });
+        });
       });
 
       /* ---------- Soft custom cursor (desktop, fine pointer only) ---------- */
