@@ -46,7 +46,7 @@ Masukkan foto ke folder `images/` dengan nama persis seperti ini:
 | `stack-01.jpg` … `stack-03.jpg` | Interlude "Some of my favorite versions of us" (01 paling depan, 03 paling belakang) | portrait 4:5 |
 | `memory-01.jpg` | Story: "The first hello" | portrait 4:5 |
 | `memory-02.jpg` | Story: "The silly conversations" | portrait 3:4 |
-| `memory-03.jpg` | Story: "The moments we didn't plan" | landscape 5:4 |
+| `video-03.mp4` | Story: "The moments we didn't plan" | landscape 16:9 (1920×1080) |
 | `memory-04.jpg` | Story: "And everything in between" | portrait 4:5 |
 | `photo-01.jpg` … `photo-05.jpg` | Memory Gallery | bebas (foto otomatis di-crop rapi) |
 
@@ -55,14 +55,15 @@ Kalau ada foto yang belum dimasukkan, akan muncul placeholder cream bertuliskan
 
 Tips: kecilkan ukuran foto sampai lebar sekitar 1600px (±300–500 KB) supaya halaman tetap ringan.
 
-## 2b. Tambahkan video (Memory Gallery)
+## 2b. Tambahkan video
 
-Masukkan 2 video ke folder `videos/`:
+Masukkan video ke folder `videos/`:
 
-| File | Bentuk | Ukuran |
-|---|---|---|
-| `video-01.mp4` | portrait 2:3 | 1200×1800 |
-| `video-02.mp4` | landscape 16:9 | 1280×720 |
+| File | Bentuk | Ukuran | Tempat |
+|---|---|---|---|
+| `video-01.mp4` | portrait 2:3 | 1200×1800 | Memory Gallery |
+| `video-02.mp4` | landscape 16:9 | 1280×720 | Memory Gallery |
+| `video-03.mp4` | landscape 16:9 | 1920×1080 | Story 03: "The moments we didn't plan" |
 
 - Video diputar otomatis tanpa suara (browser hanya mengizinkan autoplay kalau video di-mute), berulang (loop),
   dan hanya berjalan saat terlihat di layar supaya hemat baterai.
